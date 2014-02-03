@@ -29,7 +29,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.name = MASTER_HOSTNAME
   end
 
-  config.vm.hostname = MASTER_HOSTNAME
+  #config.vm.hostname = MASTER_HOSTNAME
 
   config.vm.synced_folder ".saltlick/srv/", "/srv/"
   #config.vm.synced_folder ".saltlick/roots/pillar/", "/srv/pillar/"
