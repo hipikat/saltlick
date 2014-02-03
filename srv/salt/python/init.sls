@@ -12,8 +12,9 @@ python-pip:
   'virtualenvwrapper',
   'yolk',
 ) %}
-{{ system_python_pkg }}:
+sys_py_pkg-{{ system_python_pkg }}:
   pip.installed:
+    - name: {{ system_python_pkg }}
     - require:
       - pkg: python-pip
 {% endfor %}
@@ -29,6 +30,9 @@ python-pip:
 {% endfor %}
 
 /etc/profile.d/virtualenvwrapper.sh:
+  pip.installed:
+    - require:
+      - pkg: virtualenvwrapper
   file:
     - managed
     - template: jinja
@@ -36,5 +40,3 @@ python-pip:
     - group: root
     - mode: 444 
     - source: salt://python/init_virtualenvwrapper.sh
-    - require:
-      - pip.installed: virtualenvwrapper

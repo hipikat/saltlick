@@ -5,14 +5,17 @@
 # Digital Ocean droplets.
 
 
-VAGRANTFILE_API_VERSION = "2"
 MASTER_HOSTNAME = "missfoal"
+VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.box = "saucy64"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/" +
-                      "saucy-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "raring64"
+  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/" +
+                      "raring-server-cloudimg-amd64-vagrant-disk1.box"
+  #config.vm.box = "saucy64"
+  #config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/" +
+  #                    "saucy-server-cloudimg-amd64-vagrant-disk1.box"
   config.ssh.forward_agent = true
 
   config.vm.network "private_network", ip: "192.168.30.30"
@@ -28,26 +31,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.hostname = MASTER_HOSTNAME
 
-  config.vm.synced_folder ".saltlick/roots/", "/srv/salt/"
+  config.vm.synced_folder ".saltlick/srv/", "/srv/"
+  #config.vm.synced_folder ".saltlick/roots/pillar/", "/srv/pillar/"
 
   # SaltStack master setup (with its own local minion)
   config.vm.provision :salt do |salt|
-    #salt.minion_config = ".saltlick/minion"
+
+    #salt.bootstrap_script = ".saltlick/bootstrap-salt.sh"
+    #salt.bootstrap_options = "-D -U -M"
+
+    salt.minion_config = ".saltlick/minion"
     #salt.master_config = ".saltlick/master"
 
     salt.no_minion = false
     salt.minion_key = ".saltlick/key/minion.pem"
     salt.minion_pub = ".saltlick/key/minion.pub"
+    salt.seed_master = {minion: salt.minion_pub}
 
     salt.install_master = true
     salt.master_key = ".saltlick/key/master.pem"
     salt.master_pub = ".saltlick/key/master.pub"
 
     salt.install_type = "git"
-    salt.install_args = "0.17"
-    salt.seed_master = {minion: salt.minion_pub}
+    salt.install_args = "develop"
 
-    salt.accept_keys = true
+    #salt.accept_keys = true
     salt.run_highstate = true
     salt.always_install = false
     salt.verbose = true

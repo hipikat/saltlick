@@ -64,7 +64,8 @@ include:
     - requirements: /opt/proj/{{ deploy_name }}/{{ project.requirements }}
     {% endif %}
   require:
-    - pip.installed: virtualenv
+    - pip:
+      installed: virtualenv
 
 # Virtualenvwrapper association between project & virtualenv
 /opt/venv/{{ deploy_name }}/.project:
@@ -134,9 +135,10 @@ include:
 # Supervisor uWSGI task
 {% if 'wsgi_module' in project: %}
 {{ deploy_name }}-pip-uwsgi:
-  pip.installed:
-    - name: uWSGI
-    - bin_env: /opt/venv/{{ deploy_name }}/bin/pip
+  pip:
+    installed:
+      - name: uWSGI
+      - bin_env: /opt/venv/{{ deploy_name }}/bin/pip
 
 /etc/supervisor/conf.d/{{ deploy_name }}.conf:
   file.managed:
