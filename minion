@@ -1,0 +1,83 @@
+acceptance_wait_time: 10
+acceptance_wait_time_max: 0
+autoload_dynamic_modules: true
+backup_mode: ''
+cache_jobs: false
+cachedir: /var/cache/salt/minion
+clean_dynamic_modules: true
+conf_file: /etc/salt/minion
+cython_enable: false
+default_include: minion.d/*.conf
+disable_modules: []
+disable_returners: []
+dns_check: true
+environment: null
+ext_job_cache: ''
+external_nodes: ''
+failhard: false
+file_buffer_size: 262144
+file_client: local
+file_roots:
+  base:
+  - /srv/salt
+fileserver_limit_traversal: false
+hash_type: md5
+id: self
+ipc_mode: ipc
+ipv6: false
+log_datefmt: '%H:%M:%S'
+log_datefmt_logfile: '%Y-%m-%d %H:%M:%S'
+log_file: /var/log/salt/minion
+log_fmt_console: '[%(levelname)-8s] %(message)s'
+log_fmt_logfile: '%(asctime)s,%(msecs)03.0f [%(name)-17s][%(levelname)-8s] %(message)s'
+log_granular_levels: {}
+log_level: info
+log_level_logfile: info
+loop_interval: 1
+master: 127.0.0.1
+master_finger: ''
+master_port: '4506'
+mine_interval: 60
+minion_id_caching: true
+module_dirs: []
+multiprocessing: true
+open_mode: false
+outputter_dirs: []
+permissive_pki_access: false
+pidfile: /var/run/salt-minion.pid
+pillar_roots:
+  base:
+  - /srv/pillar
+pki_dir: /etc/salt/pki/minion
+providers: {}
+range_server: range:80
+recon_default: 100
+recon_max: 5000
+recon_randomize: false
+render_dirs: []
+renderer: yaml_jinja
+retry_dns: 30
+returner_dirs: []
+root_dir: /
+sls_list: []
+sock_dir: /var/run/salt/minion
+startup_states: ''
+state_auto_order: true
+state_output: full
+state_top: top.sls
+state_verbose: true
+states_dirs: []
+tcp_keepalive: true
+tcp_keepalive_cnt: -1
+tcp_keepalive_idle: 300
+tcp_keepalive_intvl: -1
+tcp_pub_port: 4510
+tcp_pull_port: 4511
+test: false
+top_file: ''
+update_restart_services: []
+update_url: false
+user: root
+verify_env: true
+whitelist_modules: []
+win_repo_cachefile: salt://win/repo/winrepo.p
