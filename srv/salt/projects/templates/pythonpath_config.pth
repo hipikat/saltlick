@@ -1,5 +1,0 @@
-import sys; sys.__plen = len(sys.path)
-{% for path_dir in paths -%}
-{% if base_dir is defined %}{{ base_dir }}/{% endif %}{{ path_dir }}
-{% endfor -%}
-import sys; new=sys.path[sys.__plen:]; del sys.path[sys.__plen:]; p=getattr(sys,'__egginsert',0); sys.path[p:p]=new; sys.__egginsert = p+len(new)
