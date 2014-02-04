@@ -1,0 +1,6 @@
+[submodule "srv/salt"]
+	path = srv/salt
+	url = https://github.com/hipikat/salt-roots.git
+[submodule "srv/pillar"]
+	path = srv/pillar
+	url = https://github.com/hipikat/salt-pillars.git
