@@ -31,8 +31,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.hostname = MASTER_HOSTNAME
 
-  config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
-  config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
+  config.vm.synced_folder ".saltlick/srv/", "/srv/"
+  #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
+  #config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
   config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
 
   # SaltStack master setup (with its own local minion)
