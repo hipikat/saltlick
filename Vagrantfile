@@ -5,18 +5,18 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "ms-turtle"
+MASTER_HOSTNAME = "ms-tapir"
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.box = "raring64"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/" +
-                      "raring-server-cloudimg-amd64-vagrant-disk1.box"
   # NB: Saucy seems to be having sync_folder issues on Mavericks, circa Jan 2014
   #config.vm.box = "saucy64"
   #config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/" +
   #                    "saucy-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "raring64"
+  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/" +
+                      "raring-server-cloudimg-amd64-vagrant-disk1.box"
  
   config.ssh.forward_agent = true
 
@@ -33,19 +33,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.hostname = MASTER_HOSTNAME
 
-  config.vm.synced_folder ".saltlick/srv/", "/srv/"
+  #config.vm.synced_folder ".saltlick/srv/", "/srv/"
   #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
   #config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
-  config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  #config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  config.vm.synced_folder ".saltlick/", "/srv/vagrant",
+    id: "vagrant-root"
+
+  $bootstrapper = <<-SCRIPT
+    mkdir -p /srv/salt
+    cp /srv/vagrant/bootstrap/bootstrap-saltlick.sls /srv/salt/
+    cp /srv/vagrant/bootstrap/top.sls /srv/salt/
+  SCRIPT
+  config.vm.provision "shell", inline: $bootstrapper
+
+  #command = "cp #{File.join('/vagrant/', path_within_repo)} #{remote_file}"
+  #config.vm.provision :shell, :inline => command 
 
   # SaltStack master setup (with its own local minion)
   config.vm.provision :salt do |salt|
 
-    #salt.bootstrap_script = ".saltlick/bootstrap-salt.sh"
-    #salt.bootstrap_options = "-D -U -M"
-
     salt.minion_config = ".saltlick/minion"
-    #salt.master_config = ".saltlick/master"
 
     salt.no_minion = false
     salt.minion_key = ".saltlick/key/minion.pem"
@@ -59,11 +67,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     salt.install_type = "git"
     salt.install_args = "develop"
 
-    #salt.accept_keys = true
     salt.run_highstate = true
     salt.always_install = false
     salt.verbose = true
   end 
+
+  # Run a second state.highstate after the bootstrap state has
+  # checked everything out into its correct places.
+  config.vm.provision "shell", inline: "salt " + MASTER_HOSTNAME + " state.highstate"
 
   # Provider: Digital Ocean
   # NB: As of January 2014, the Salt provisioning is failing when using
