@@ -5,7 +5,7 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "missfoal"
+MASTER_HOSTNAME = "ms-turtle"
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -13,23 +13,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "raring64"
   config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/" +
                       "raring-server-cloudimg-amd64-vagrant-disk1.box"
+  # NB: Saucy seems to be having sync_folder issues on Mavericks, circa Jan 2014
   #config.vm.box = "saucy64"
   #config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/" +
   #                    "saucy-server-cloudimg-amd64-vagrant-disk1.box"
+ 
   config.ssh.forward_agent = true
 
   config.vm.network "private_network", ip: "192.168.30.30"
   config.vm.network :forwarded_port,
     guest: 22, host: 2230, id: "ssh", auto_correct: true
 
-  config.vm.define MASTER_HOSTNAME do |foohost|
+  config.vm.define MASTER_HOSTNAME do |host|
   end
 
   config.vm.provider :virtualbox do |vb|
       vb.name = MASTER_HOSTNAME
   end
 
-  #config.vm.hostname = MASTER_HOSTNAME
+  config.vm.hostname = MASTER_HOSTNAME
 
   config.vm.synced_folder ".saltlick/srv/", "/srv/"
   #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
@@ -48,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     salt.no_minion = false
     salt.minion_key = ".saltlick/key/minion.pem"
     salt.minion_pub = ".saltlick/key/minion.pub"
-    salt.seed_master = {minion: salt.minion_pub}
+    salt.seed_master = {MASTER_HOSTNAME => salt.minion_pub}
 
     salt.install_master = true
     salt.master_key = ".saltlick/key/master.pem"

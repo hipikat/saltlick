@@ -4,3 +4,6 @@
 [submodule "srv/pillar"]
 	path = srv/pillar
 	url = https://github.com/hipikat/salt-pillars.git
+[submodule "srv/formulas"]
+	path = srv/formulas
+	url = https://github.com/hipikat/salt-formulas.git
