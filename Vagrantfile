@@ -31,14 +31,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.name = MASTER_HOSTNAME
   end
 
-  config.vm.hostname = MASTER_HOSTNAME
+  #config.vm.hostname = MASTER_HOSTNAME
 
   #config.vm.synced_folder ".saltlick/srv/", "/srv/"
   #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
   #config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
-  #config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
-  config.vm.synced_folder ".saltlick/", "/srv/vagrant",
-    id: "vagrant-root"
+  config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  config.vm.synced_folder ".saltlick/", "/srv/vagrant"
 
   $bootstrapper = <<-SCRIPT
     mkdir -p /srv/salt
