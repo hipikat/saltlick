@@ -23,6 +23,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "private_network", ip: "192.168.30.30"
   config.vm.network :forwarded_port,
     guest: 22, host: 2230, id: "ssh", auto_correct: true
+  config.vm.network :forwarded_port, protocol: 'udp',
+    guest: 62230, host: 62230, id: "mosh", auto_correct: true
 
   config.vm.define MASTER_HOSTNAME do |host|
   end
@@ -31,49 +33,59 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.name = MASTER_HOSTNAME
   end
 
-  #config.vm.hostname = MASTER_HOSTNAME
+  config.vm.hostname = MASTER_HOSTNAME
 
   #config.vm.synced_folder ".saltlick/srv/", "/srv/"
   #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
   #config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
   config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
-  config.vm.synced_folder ".saltlick/", "/srv/vagrant"
+  config.vm.synced_folder ".saltlick/", "/mnt/saltlick"
 
   $bootstrapper = <<-SCRIPT
     mkdir -p /srv/salt
-    cp /srv/vagrant/bootstrap/bootstrap-saltlick.sls /srv/salt/
-    cp /srv/vagrant/bootstrap/top.sls /srv/salt/
+    cp /mnt/saltlick/bootstrap/saltlick.sls /srv/salt/bootstrap-saltlick.sls
+    cp /mnt/saltlick/bootstrap/top.sls /srv/salt/
+    mkdir -p /etc/salt
+    cp /mnt/saltlick/bootstrap/minion /etc/salt/
   SCRIPT
   config.vm.provision "shell", inline: $bootstrapper
 
   #command = "cp #{File.join('/vagrant/', path_within_repo)} #{remote_file}"
   #config.vm.provision :shell, :inline => command 
 
+
+
   # SaltStack master setup (with its own local minion)
   config.vm.provision :salt do |salt|
 
-    salt.minion_config = ".saltlick/minion"
+    salt.minion_config = ".saltlick/bootstrap/minion"
 
     salt.no_minion = false
-    salt.minion_key = ".saltlick/key/minion.pem"
-    salt.minion_pub = ".saltlick/key/minion.pub"
+    salt.minion_key = ".saltlick/keys/minion.pem"
+    salt.minion_pub = ".saltlick/keys/minion.pub"
     salt.seed_master = {MASTER_HOSTNAME => salt.minion_pub}
 
     salt.install_master = true
-    salt.master_key = ".saltlick/key/master.pem"
-    salt.master_pub = ".saltlick/key/master.pub"
+    salt.master_key = ".saltlick/keys/master.pem"
+    salt.master_pub = ".saltlick/keys/master.pub"
 
     salt.install_type = "git"
-    salt.install_args = "develop"
+    salt.install_args = "2014.1"
+    #salt.install_type = "stable"
 
     salt.run_highstate = true
     salt.always_install = false
     salt.verbose = true
   end 
 
+
+
   # Run a second state.highstate after the bootstrap state has
   # checked everything out into its correct places.
-  config.vm.provision "shell", inline: "salt " + MASTER_HOSTNAME + " state.highstate"
+  config.vm.provision "shell", inline: "sleep 5"
+  config.vm.provision "shell", inline: "sudo salt " + MASTER_HOSTNAME + " state.highstate"
+
+
 
   # Provider: Digital Ocean
   # NB: As of January 2014, the Salt provisioning is failing when using
@@ -84,7 +96,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     provider.region = 'New York 2'
     provider.size = '512MB'
     provider.private_networking = true
-    provider.ssh_key_name = 'salty-vagrant'
+    provider.ssh_key_name = 'trepp-rsa'
     provider.backups_enabled = true
     provider.setup = false
   end

@@ -1,2 +1,2 @@
 .vagrant
-secrets/users-secrets.sls
+secrets.sls
