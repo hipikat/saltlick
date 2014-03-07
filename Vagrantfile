@@ -5,7 +5,9 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "ms-tapir"
+MASTER_HOSTNAME = "mr-beagle"
+SALTLICK_PATH = ""
+
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -35,11 +37,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.hostname = MASTER_HOSTNAME
 
-  #config.vm.synced_folder ".saltlick/srv/", "/srv/"
-  #config.vm.synced_folder ".saltlick/srv/salt/", "/srv/salt/"
-  #config.vm.synced_folder ".saltlick/srv/pillar/", "/srv/pillar/"
+  #config.vm.synced_folder SALTLICK_PATH + "srv/", "/srv/"
+  #config.vm.synced_folder SALTLICK_PATH + "srv/salt/", "/srv/salt/"
+  #config.vm.synced_folder SALTLICK_PATH + "srv/pillar/", "/srv/pillar/"
   config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
-  config.vm.synced_folder ".saltlick/", "/mnt/saltlick"
+  config.vm.synced_folder SALTLICK_PATH, "/mnt/saltlick"
 
   $bootstrapper = <<-SCRIPT
     mkdir -p /srv/salt
@@ -58,16 +60,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # SaltStack master setup (with its own local minion)
   config.vm.provision :salt do |salt|
 
-    salt.minion_config = ".saltlick/bootstrap/minion"
+    salt.minion_config = SALTLICK_PATH + "bootstrap/minion"
 
     salt.no_minion = false
-    salt.minion_key = ".saltlick/keys/minion.pem"
-    salt.minion_pub = ".saltlick/keys/minion.pub"
+    salt.minion_key = SALTLICK_PATH + "keys/minion.pem"
+    salt.minion_pub = SALTLICK_PATH + "keys/minion.pub"
     salt.seed_master = {MASTER_HOSTNAME => salt.minion_pub}
 
     salt.install_master = true
-    salt.master_key = ".saltlick/keys/master.pem"
-    salt.master_pub = ".saltlick/keys/master.pub"
+    salt.master_key = SALTLICK_PATH + "keys/master.pem"
+    salt.master_pub = SALTLICK_PATH + "keys/master.pub"
 
     salt.install_type = "git"
     salt.install_args = "2014.1"
