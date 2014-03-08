@@ -5,7 +5,7 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "mr-beagle"
+MASTER_HOSTNAME = "my-master"
 SALTLICK_PATH = ""
 
 VAGRANTFILE_API_VERSION = "2"
@@ -41,14 +41,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.vm.synced_folder SALTLICK_PATH + "srv/salt/", "/srv/salt/"
   #config.vm.synced_folder SALTLICK_PATH + "srv/pillar/", "/srv/pillar/"
   config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
-  config.vm.synced_folder SALTLICK_PATH, "/mnt/saltlick"
+  config.vm.synced_folder SALTLICK_PATH, "/srv/formulas/saltlick-formula"
 
   $bootstrapper = <<-SCRIPT
-    mkdir -p /srv/salt
-    cp /mnt/saltlick/bootstrap/saltlick.sls /srv/salt/bootstrap-saltlick.sls
-    cp /mnt/saltlick/bootstrap/top.sls /srv/salt/
+    mkdir -p /srv/salt/formulas
+    ln -s /srv/formulas/saltlick-formula/saltlick /srv/salt/saltlick
+    ln -s /srv/formulas/saltlick-formula/etc/top.sls /srv/salt/top.sls
     mkdir -p /etc/salt
-    cp /mnt/saltlick/bootstrap/minion /etc/salt/
+    cp /srv/formulas/saltlick-formula/etc/minion /etc/salt/
   SCRIPT
   config.vm.provision "shell", inline: $bootstrapper
 
@@ -60,16 +60,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # SaltStack master setup (with its own local minion)
   config.vm.provision :salt do |salt|
 
-    salt.minion_config = SALTLICK_PATH + "bootstrap/minion"
+    # TODO: See if we can drop the minion setup in $bootstrapper above
+    salt.minion_config = SALTLICK_PATH + "etc/minion"
 
     salt.no_minion = false
-    salt.minion_key = SALTLICK_PATH + "keys/minion.pem"
-    salt.minion_pub = SALTLICK_PATH + "keys/minion.pub"
+    salt.minion_key = SALTLICK_PATH + "etc/keys/minion.pem"
+    salt.minion_pub = SALTLICK_PATH + "etc/keys/minion.pub"
     salt.seed_master = {MASTER_HOSTNAME => salt.minion_pub}
 
     salt.install_master = true
-    salt.master_key = SALTLICK_PATH + "keys/master.pem"
-    salt.master_pub = SALTLICK_PATH + "keys/master.pub"
+    salt.master_key = SALTLICK_PATH + "etc/keys/master.pem"
+    salt.master_pub = SALTLICK_PATH + "etc/keys/master.pub"
 
     salt.install_type = "git"
     salt.install_args = "2014.1"

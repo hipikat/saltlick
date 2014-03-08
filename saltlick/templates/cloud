@@ -1,0 +1,3 @@
+minion:
+  master: {{ master_address }}
+delete_sshkeys: True

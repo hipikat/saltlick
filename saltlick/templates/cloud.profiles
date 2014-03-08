@@ -1,0 +1,16 @@
+my-digitalocean-saucy-512M:
+  provider: my-digitalocean-sgp1
+  image: Ubuntu 13.10 x64
+  size: 512MB
+  ssh_key_name: trepp-rsa
+  private_networking: True
+  backups_enabled: True
+  wait_for_ip_timeout: 3600
+  wait_for_ip_interval: 35
+
+droplet:
+  extends: my-digitalocean-saucy-512M
+
+salt-master:
+  extends: my-digitalocean-saucy-512M
+  script_args: -M

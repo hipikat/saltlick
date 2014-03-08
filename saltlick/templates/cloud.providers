@@ -1,0 +1,11 @@
+my-digitalocean-sgp1:
+  - client_key: {{ client_key }}
+    api_key: {{ api_key }}
+    location: Singapore 1
+    provider: digital_ocean
+
+# This totally doesn't parse like in the examples on
+# http://salt-cloud.readthedocs.org/en/latest/topics/config.html#extending-providers
+# my-digitalocean-ny2:
+#   - extends: my-digitalocean-sgp1:digital_ocean
+#     location: New York 2
