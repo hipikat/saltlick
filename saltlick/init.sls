@@ -4,6 +4,7 @@
 {% set salt_pillars = 'https://github.com/hipikat/salt-pillars.git' %}
 {% set formulas = {
   'users': ('https://github.com/hipikat/users-formula.git', 'dotfiles'),
+  'chippery': ('https://github.com/hipikat/chippery.git', 'master'),
 } %}
 
 # Install salt roots
@@ -44,11 +45,16 @@ https://github.com/hipikat/salt-roots.git:
     - source: /mnt/saltlick/secrets.sls
 
 # Fix permissions (TODO: Check dirs exist)
-#{% for salt_dir in ('/srv/salt', '/srv/pillar', '/srv/formulas' '/var/log/salt') %}
-#{{ salt_dir }}:
-#  file.directory:
-#    - dir_mode: 775
-#    - file_mode: 664
-#    - recurse:
-#      - mode
-#{% endfor %}
+{% for salt_dir in (
+  '/srv/salt',
+  '/srv/pillar',
+  '/srv/formulas',
+) %}
+{{ salt_dir }}-perms:
+  file.directory:
+    - name: {{ salt_dir }}
+    - dir_mode: 775
+    - file_mode: 664
+    - recurse:
+      - mode
+{% endfor %}
