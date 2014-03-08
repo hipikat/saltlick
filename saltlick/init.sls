@@ -1,15 +1,29 @@
-# TODO: Make this configurable from Jinja dicts.
+#
+# Saltlick installs and configures Salt masters
+###########################################
 
+{% set saltlick = pillar.get('saltlick') %}
 {% set salt_roots = 'https://github.com/hipikat/salt-roots.git' %}
-{% set salt_pillars = 'https://github.com/hipikat/salt-pillars.git' %}
+{% set pillars = 'https://github.com/hipikat/salt-pillars.git' %}
 {% set formulas = {
   'saltlick': ('https://github.com/hipikat/saltlick-formula.git', 'master'),
   'users': ('https://github.com/hipikat/users-formula.git', 'dotfiles'),
   'chippery': ('https://github.com/hipikat/chippery.git', 'master'),
 } %}
 
+
+# Packages required on Salt masters
+saltlick-sys-packages:
+  pkg.installed:
+    - pkgs:
+      - python-pip
+
+saltlick-py-packages:
+  pip.installed:
+    - name: apache-libcloud
+
 # Install salt roots
-https://github.com/hipikat/salt-roots.git:
+{{ salt_roots }}:
   git.latest:
     - rev: master
     - target: /srv/salt
@@ -35,12 +49,12 @@ https://github.com/hipikat/salt-roots.git:
 {% endif %}
 
 # Install pillars
-{{ salt_pillars }}:
+{{ pillars }}:
   git.latest:
     - rev: master
     - target: /srv/pillar
 
-# Copy secrets from Vagrant mount
+# Install pillar secrets from Saltlick
 /srv/pillar/secrets.sls:
   file.copy:
     - source: /srv/formulas/saltlick-formula/secrets.sls
@@ -51,7 +65,7 @@ https://github.com/hipikat/salt-roots.git:
   '/srv/pillar',
   '/srv/formulas',
 ) %}
-{{ salt_dir }}-perms:
+perms={{ salt_dir }}:
   file.directory:
     - name: {{ salt_dir }}
     - dir_mode: 775
@@ -59,3 +73,35 @@ https://github.com/hipikat/salt-roots.git:
     - recurse:
       - mode
 {% endfor %}
+
+
+# This is a pre-bootstrapped master; configure based on pillar data.
+{% if saltlick %}
+
+# Configure Salt Cloud
+# TODO: Support for multiple providers, profiles, etc.
+{% if 'salt_cloud' in saltlick %}
+{% set cloud = saltlick['salt_cloud'] %}
+
+/etc/salt/cloud:
+  file.managed:
+    - source: salt://saltlick/templates/cloud
+    - template: jinja
+    - context:
+        master_address: {{ cloud['master_address'] }}
+
+/etc/salt/cloud.profiles:
+  file.managed:
+    - source: salt://saltlick/templates/cloud.profiles
+
+/etc/salt/cloud.providers:
+  file.managed:
+    - source: salt://saltlick/templates/cloud.providers
+    - template: jinja
+    - context:
+        client_key: {{ cloud['client_key'] }}
+        api_key: {{ cloud['api_key'] }}
+
+{% endif %}   # End if 'salt_cloud' in pillar['saltlick']
+
+{% endif %}   # End if 'saltlick' in pillar
