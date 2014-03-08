@@ -95,7 +95,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # different values of salt.install_type/salt/install_args.
   config.vm.provider :digital_ocean do |provider, override|
     provider.image = 'Ubuntu 13.10 x64'
-    provider.region = 'New York 2'
+    provider.region = 'Singapore 1'
     provider.size = '512MB'
     provider.private_networking = true
     provider.ssh_key_name = 'trepp-rsa'
