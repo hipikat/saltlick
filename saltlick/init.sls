@@ -3,6 +3,7 @@
 {% set salt_roots = 'https://github.com/hipikat/salt-roots.git' %}
 {% set salt_pillars = 'https://github.com/hipikat/salt-pillars.git' %}
 {% set formulas = {
+  'saltlick': ('https://github.com/hipikat/saltlick-formula.git', 'master'),
   'users': ('https://github.com/hipikat/users-formula.git', 'dotfiles'),
   'chippery': ('https://github.com/hipikat/chippery.git', 'master'),
 } %}
@@ -42,7 +43,7 @@ https://github.com/hipikat/salt-roots.git:
 # Copy secrets from Vagrant mount
 /srv/pillar/secrets.sls:
   file.copy:
-    - source: /mnt/saltlick/secrets.sls
+    - source: /srv/formulas/saltlick-formula/secrets.sls
 
 # Fix permissions (TODO: Check dirs exist)
 {% for salt_dir in (

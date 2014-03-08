@@ -5,7 +5,7 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "mr-beagle"
+MASTER_HOSTNAME = "my-master"
 SALTLICK_PATH = ""
 
 VAGRANTFILE_API_VERSION = "2"
