@@ -5,8 +5,8 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "my-master"
-SALTLICK_PATH = ""
+MASTER_HOSTNAME = "ms-tapir"
+SALTLICK_PATH = ".saltlick"
 
 VAGRANTFILE_API_VERSION = "2"
 
@@ -35,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.name = MASTER_HOSTNAME
   end
 
-  config.vm.hostname = MASTER_HOSTNAME
+  #config.vm.hostname = MASTER_HOSTNAME
 
   #config.vm.synced_folder SALTLICK_PATH + "srv/", "/srv/"
   #config.vm.synced_folder SALTLICK_PATH + "srv/salt/", "/srv/salt/"
