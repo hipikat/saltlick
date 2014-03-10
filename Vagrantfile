@@ -5,7 +5,7 @@
 # Digital Ocean droplets.
 
 
-MASTER_HOSTNAME = "my-master"
+MASTER_HOSTNAME = "ms-ratel"
 SALTLICK_PATH = ""
 
 VAGRANTFILE_API_VERSION = "2"
@@ -22,11 +22,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  
   config.ssh.forward_agent = true
 
-  config.vm.network "private_network", ip: "192.168.30.30"
+  config.vm.network "private_network", ip: "192.168.40.40"
   config.vm.network :forwarded_port,
-    guest: 22, host: 2230, id: "ssh", auto_correct: true
+    guest: 22, host: 2240, id: "ssh", auto_correct: true
   config.vm.network :forwarded_port, protocol: 'udp',
-    guest: 62230, host: 62230, id: "mosh", auto_correct: true
+    guest: 62240, host: 62240, id: "mosh", auto_correct: true
 
   config.vm.define MASTER_HOSTNAME do |host|
   end
@@ -73,7 +73,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     salt.master_pub = SALTLICK_PATH + "etc/keys/master.pub"
 
     salt.install_type = "git"
-    salt.install_args = "2014.1"
+    salt.install_args = "develop"
     #salt.install_type = "stable"
 
     salt.run_highstate = true
