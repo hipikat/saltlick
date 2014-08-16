@@ -1,107 +1,123 @@
+#!stateconf -o yaml . jinja
 #
 # Saltlick installs and configures Salt masters
 ###########################################
 
-{% set saltlick = pillar.get('saltlick') %}
-{% set salt_roots = 'https://github.com/hipikat/salt-roots.git' %}
-{% set pillars = 'https://github.com/hipikat/salt-pillars.git' %}
-{% set formulas = {
-  'saltlick': ('https://github.com/hipikat/saltlick-formula.git', 'master'),
-  'users': ('https://github.com/hipikat/users-formula.git', 'dotfiles'),
-  'chippery': ('https://github.com/hipikat/chippery.git', 'master'),
-} %}
+{% set saltlick = pillar.get('saltlick', {}) %}
 
 
-# Packages required on Salt masters
-saltlick-sys-packages:
-  pkg.installed:
-    - pkgs:
-      - python-pip
+# Set group-write on Salt files and directories if a Salt group is specified
+{% set salt_user = saltlick.get('salt_user', 'root') %}
+{% set salt_group = saltlick.get('salt_group', 'root') %}
 
-saltlick-py-packages:
-  pip.installed:
-    - name: apache-libcloud
-
-# Install salt roots
-{{ salt_roots }}:
-  git.latest:
-    - rev: master
-    - target: /srv/salt
-    - force: true
-
-# Install formulas
-{% if formulas is defined %}
-/srv/formulas:
-  file.directory:
-    - makedirs: True
-
-{% for formula_name, formula_repo in formulas.items() %}
-{{ formula_repo[0] }}:
-  git.latest:
-    - rev: master
-    - target: /srv/formulas/{{ formula_name }}-formula
-    - rev: {{ formula_repo[1] }}
-
-/srv/salt/{{ formula_name }}: 
-  file.symlink:
-    - target: /srv/formulas/{{ formula_name }}-formula/{{ formula_name }}
-{% endfor %}
+{% if 'file_mode' in saltlick %}
+  {% set file_mode = saltlick['file_mode'] %}
+{% elif 'salt_group' in saltlick %}
+  {% set file_mode = '664' %}
+.Salt group:
+  group.present:
+    - name: {{ saltlick['salt_group'] }}
+{% else %}
+  {% set file_mode = '644' %}
 {% endif %}
 
-# Install pillars
-{{ pillars }}:
+{% if 'dir_mode' in saltlick %}
+  {% set dir_mode = saltlick['dir_mode'] %}
+{% elif file_mode == '664' %}
+  {% set dir_mode = '775' %}
+{% else %}
+  {% set dir_mode = '755' %}
+{% endif %}
+
+
+# Require apache-libcloud if salt-cloud is enabled on this minion. This
+# # will have already been done if -L and -P were passed to bootstrap-salt.sh.
+{% if saltlick.get('salt_cloud') %}
+.Salt Cloud system packages:
+  pkg.installed:
+    - name: python-pip
+
+.Salt Cloud system-Python packages:
+  pip.installed:
+    - name: apache-libcloud
+{% endif %}
+
+
+# Install Salt roots and pillars
+{% for part in ('roots', 'pillars') %}
+  {% set salt_part = saltlick.get('salt_' ~ part) %}
+  {% if salt_part %}
+    {% if salt_part is not mapping %}
+      {% set salt_part = {'url': salt_part} %}
+    {% endif %}
+
+.Salt {{ part }} git checkout:
   git.latest:
-    - rev: master
+    - name: {{ salt_part['url'] }}
+    - rev: {{ salt_part.get('rev', 'master') }}
+    {% if part == 'roots' %}
+    - target: /srv/salt
+    {% elif part == 'pillars' %}
     - target: /srv/pillar
+    {% endif %}
+    - force: {{ salt_part.get('force', true) }}
 
-# Install pillar secrets from Saltlick
-/srv/pillar/secrets.sls:
-  file.copy:
-    - source: /srv/formulas/saltlick-formula/secrets.sls
-
-# Fix permissions (TODO: Check dirs exist)
-{% for salt_dir in (
-  '/srv/salt',
-  '/srv/pillar',
-  '/srv/formulas',
-) %}
-perms={{ salt_dir }}:
-  file.directory:
-    - name: {{ salt_dir }}
-    - dir_mode: 775
-    - file_mode: 664
-    - recurse:
-      - mode
+  {% endif %}
 {% endfor %}
 
 
-# This is a pre-bootstrapped master; configure based on pillar data.
-{% if saltlick %}
+# Install Salt formulas
+{% set formulas = saltlick.get('salt_formulas', {}) %}
+{% for formula_name, formula_spec in formulas.items() %}
+  {% if formula_spec is not mapping %}
+    {% set formula_spec = {'url': formula_spec} %}
+  {% endif %}
 
-# Configure Salt Cloud
-# TODO: Support for multiple providers, profiles, etc.
-{% if 'salt_cloud' in saltlick %}
-{% set cloud = saltlick['salt_cloud'] %}
+.Formula {{ formula_name }} git checkout:
+  git.latest:
+    - name: {{ formula_spec['url'] }}
+    - rev: {{ formula_spec.get('rev', 'master') }}
+    - target: /srv/formulas/{{ formula_name }}-formula
+    - force: {{ formula_spec.get('force', true) }}
 
-/etc/salt/cloud:
-  file.managed:
-    - source: salt://saltlick/templates/cloud
-    - template: jinja
-    - context:
-        master_address: {{ cloud['master_address'] }}
+.Formula {{ formula_name }} symlink into Salt roots:
+  file.symlink:
+    - name: /srv/salt/{{ formula_name }}
+    - target: /srv/formulas/{{ formula_name }}-formula/{{ formula_name }}
+    - user: {{ salt_user }}
+    - group: {{ salt_group }}
 
-/etc/salt/cloud.profiles:
-  file.managed:
-    - source: salt://saltlick/templates/cloud.profiles
+{% endfor %}
 
-/etc/salt/cloud.providers:
-  file.managed:
-    - source: salt://saltlick/templates/cloud.providers
-    - template: jinja
-    - context:
-        client_key: {{ cloud['client_key'] }}
-        api_key: {{ cloud['api_key'] }}
 
-{% endif %}   # End if 'salt_cloud' in pillar['saltlick']
+# Ownership and permissions on Salt directories
+{% for salt_dir in ('salt', 'pillars', 'formulas') %}
 
-{% endif %}   # End if 'saltlick' in pillar
+.Ownership and permissions on /srv/{{ salt_dir }}:
+  file.directory:
+    - name: /srv/{{ salt_dir }}
+    - user: {{ salt_user }}
+    - group: {{ salt_group }}
+    - file_mode: {{ file_mode }}
+    - dir_mode: {{ dir_mode }}
+    - recurse:
+      - user
+      - group
+      - mode
+
+{% endfor %}
+
+
+# Create a keypair for Salt Cloud to use
+.Salt Cloud keys directory exists:
+  file.directory:
+    - name: /etc/salt/cloud.keys
+
+.Salt Cloud master key exists:
+  cmd.run:
+    - name: ssh-keygen -f /etc/salt/cloud.keys/saltlick-{{ grains['id'] }}_rsa {# -#}
+                       -C saltlick@{{ grains['id'] }} -t rsa -N ''
+    - onlyif: test ! -f /etc/salt/cloud.keys/saltlick-{{ grains['id'] }}_rsa
+
+
+# Salt configuration directory permissions
