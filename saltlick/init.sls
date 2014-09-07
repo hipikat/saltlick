@@ -73,14 +73,33 @@
     {% set formula_spec = {'url': formula_spec} %}
   {% endif %}
 
-.Formula {{ formula_name }} git checkout:
+  {% if 'deploy_key' in formula_spec %}
+.Directory /var/local/saltlick/deploy_keys for formula '{{ formula_name }}':
+  file.directory:
+    - name: /var/local/saltlick/deploy_keys
+    - user: root
+    - mode: 700
+    - makedirs: True
+
+.Deployment key for formula '{{ formula_name }}':
+  file.managed:
+    - name: /var/local/saltlick/deploy_keys/{{ formula_name }}
+    - source: {{ formula_spec['deploy_key'] }}
+    - user: root
+    - mode: 600
+  {% endif %}
+
+.Git-checkout formula '{{ formula_name }}':
   git.latest:
     - name: {{ formula_spec['url'] }}
     - rev: {{ formula_spec.get('rev', 'master') }}
     - target: /srv/formulas/{{ formula_name }}-formula
-    - force: {{ formula_spec.get('force', true) }}
+    - force: {{ formula_spec.get('force', 'False') }}
+    {% if 'deploy_key' in formula_spec %}
+    - identity: /var/local/saltlick/deploy_keys/{{ formula_name }}
+    {% endif %}
 
-.Formula {{ formula_name }} symlink into Salt roots:
+.Symlink formula '{{ formula_name }}' into Salt roots:
   file.symlink:
     - name: /srv/salt/{{ formula_name }}
     - target: /srv/formulas/{{ formula_name }}-formula/{{ formula_name }}
