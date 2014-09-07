@@ -98,6 +98,9 @@
     {% if 'deploy_key' in formula_spec %}
     - identity: /var/local/saltlick/deploy_keys/{{ formula_name }}
     {% endif %}
+    {% if 'remote_name' in formula_spec %}
+    - remote_name: {{ formula_spec['remote_name'] }}
+    {% endif %}
 
 .Symlink formula '{{ formula_name }}' into Salt roots:
   file.symlink:
