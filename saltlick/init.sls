@@ -6,6 +6,21 @@
 {% set saltlick = pillar.get('saltlick', {}) %}
 
 
+# Installing Salt needs to come first, if required
+{% if saltlick.get('salt_install', {}).get('type') %}
+  {% set salt_install_type = saltlick['salt_install']['type'] %}
+{% endif %}
+
+
+# Include includes
+include:
+  - saltlick.null
+  {% if salt_install_type is defined %}
+  - saltlick.salt_install.{{ salt_install_type }}
+  {% endif %}
+
+
+
 # Set group-write on Salt files and directories if a Salt group is specified
 {% set salt_user = saltlick.get('salt_user', 'root') %}
 {% set salt_group = saltlick.get('salt_group', 'root') %}
