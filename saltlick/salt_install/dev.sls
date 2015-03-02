@@ -50,7 +50,7 @@ include:
   git.latest:
     - name: https://github.com/saltstack/salt.git
     # TODO: Default to 'develop'? Configurable via settings?
-    - rev: 2015.2
+    - rev: {{ install_conf.get('rev', 'develop') }}
     - target: /opt/salt/salt
 
 {% for salt_requires in ('dev_requirements_python27.txt',
