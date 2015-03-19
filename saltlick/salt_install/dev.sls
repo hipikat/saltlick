@@ -122,5 +122,6 @@ include:
     - name: {{ pillar['settings']['supervisor_conf_dir'] }}/salt-{{ salt_process }}.ini
     - source: salt://saltlick/templates/salt-{{ salt_process }}-supervisor.ini
     - template: jinja
+    - makedirs: True
   {% endfor %}
 {% endif %}
