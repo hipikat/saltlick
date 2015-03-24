@@ -50,8 +50,9 @@ include:
   git.latest:
     - name: https://github.com/saltstack/salt.git
     # TODO: Default to 'develop'? Configurable via settings?
-    - rev: {{ install_conf.get('rev', 'develop') }}
+    - rev: '{{ install_conf.get("rev", "develop") }}'
     - target: /opt/salt/salt
+    - unless: test -d /opt/salt/salt
 
 {% for salt_requires in ('dev_requirements_python27.txt',
                          'cloud-requirements.txt',
@@ -96,11 +97,13 @@ include:
   file.copy:
     - name: /etc/salt/{{ salt_role }}
     - source: /opt/salt/salt/conf/{{ salt_role }}
-    - unless: -f /etc/salt/{{ salt_role }}
+    - unless: test -f /etc/salt/{{ salt_role }}
 {% endfor %}
 
 #.Point the minion at master ''
 # TODO: Are we able to get the master's address??
+# oooh, we should just get it from the pillar right?
+# hmm we need something in Saltlick to cleanly change the master of a minion...
 
 .Salt minion ID file:
   file.managed:

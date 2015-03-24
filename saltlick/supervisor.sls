@@ -4,6 +4,20 @@
 ###########################################
 
 
+# NB: I'm seeing what this person's seeing:
+# http://masato.github.io/2014/11/16/salt-pip-installed-unavailable/
+#
+#.Do not use system-package-managed pip, it breaks the pip.installed state:
+#  pkg.purged:
+#    - name: python-pip
+#
+#.Install System-pip:
+#  cmd:
+#    - run
+#    - name: easy_install --script-dir=/usr/bin -U pip
+#    - reload_modules: true
+#    - unless: test -f /usr/bin/pip
+#
 .System packages required to install Supervisor:
   pkg.installed:
     - pkgs:
@@ -17,6 +31,7 @@
   file.directory:
     - name: /etc/supervisor
     - makedirs: True
+
 
 #.Default Supervisor configuration file:
 #  cmd.run:

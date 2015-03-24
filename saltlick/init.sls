@@ -6,17 +6,24 @@
 {% set saltlick = pillar.get('saltlick', {}) %}
 
 
-# Installing Salt needs to come first, if required
-{% if saltlick.get('salt_install', {}).get('type') %}
-  {% set salt_install_type = saltlick['salt_install']['type'] %}
-{% endif %}
-
-
 # Include includes
 include:
   - saltlick.null
-  {% if salt_install_type is defined %}
-  - saltlick.salt_install.{{ salt_install_type }}
+
+  # Install Supervisor (if required)
+  {% if pillar.get('controllers', {}).get('supervisor') == 'saltlick.supervisor' %}
+  - saltlick.supervisor
   {% endif %}
 
+  # Install Salt
+  {% if saltlick.get('salt_install', {}).get('type') %}
+  - saltlick.salt_install.{{ saltlick['salt_install']['type'] }}
+  {% endif %}
 
+  # Install secrets
+  {% if saltlick.get('secrets', {}) %}
+  - saltlick.secrets
+  {% endif %}
+
+  # Install Salt roots, pillars, formulas, etc.
+  - saltlick.local
