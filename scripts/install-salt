@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Install salt, here. Assumes recent Ubuntu.
+#
+# TODO: 
+# COMMAND-LINE OPTIONS:
+# -d: 'dev' install. do a 'normal' install, otherwise?
+# -M: install master
+# -s: install Supervisor jobs
+# -S: install Supervisor AND Supervisor jobs?
+
+
+# Ensure running as root
+if [ "$(id -u)" != "0" ]; then
+    echo "$0: Must be run as root."
+    exit 1
+fi
+
+# Ensure pip
+if ! type pip &>/dev/null; then
+    echo -e "\nInstalling pip..."
+    apt-get -y install python-pip
+fi
+
+# Ensure Supervisor
+if ! type supervisord &>/dev/null; then
+    echo -e "\nInstalling Supervisor..."
+    pip install supervisor
+fi
+
+# 

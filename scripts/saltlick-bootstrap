@@ -28,7 +28,7 @@ cd saltlick-bootstrap
 
 # Install Salt (running under Supervisor by default) to the machine
 echo "Installing Salt on $1 ..."
-salt-ssh --refresh "$1" state.sls saltlick.salt_install.dev
+salt-ssh -i --refresh "$1" state.sls saltlick.salt_install.dev
 
 # Generate new minion key
 echo "Generating minion keys in /tmp/saltlick-bootstrap ..."
@@ -42,7 +42,7 @@ escaped_minion_pub=`cat "$1".pub | awk '{printf "%s\\\\n",$0} END {print ""}'`
 escaped_minion_pem=`cat "$1".pem | awk '{printf "%s\\\\n",$0} END {print ""}'`
 
 echo "Creating minion keys in $1:/etc/salt/pki/minion"
-salt-ssh --raw "$1" "mkdir -p /etc/salt/pki/minion;
+salt-ssh -i --raw "$1" "mkdir -p /etc/salt/pki/minion;
     echo -e '$escaped_minion_pub' > /etc/salt/pki/minion/minion.pub;
     umask 177;
     echo -e '$escaped_minion_pem' > /etc/salt/pki/minion/minion.pem;

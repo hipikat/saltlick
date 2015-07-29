@@ -20,10 +20,15 @@ include:
   - saltlick.salt_install.{{ saltlick['salt_install']['type'] }}
   {% endif %}
 
-  # Install secrets
-  {% if saltlick.get('secrets', {}) %}
-  - saltlick.secrets
+  # Install deploy_keys
+  {% if 'deploy_keys' in saltlick %}
+  - saltlick.deploy_keys
   {% endif %}
 
   # Install Salt roots, pillars, formulas, etc.
   - saltlick.local
+
+  # Install Salt-Cloud configuration
+  {% if 'salt_cloud' in saltlick %}
+  - saltlick.salt_cloud
+  {% endif %}

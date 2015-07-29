@@ -54,12 +54,12 @@ include:
     - target: /opt/salt/salt
     - unless: test -d /opt/salt/salt
 
-{% for salt_requires in ('dev_requirements_python27.txt',
-                         'cloud-requirements.txt',
-                         'zeromq-requirements.txt') %}
+{# for salt_requires in ('dev_requirements_python27.txt', 'cloud-requirements.txt', 'zeromq-requirements.txt') #}
+{% for salt_requires in ('dev_python27.txt',
+                         'zeromq.txt') %}
 .Salt requirements '{{ salt_requires }}', from Salt source:
   pip.installed:
-    - requirements: /opt/salt/salt/{{ salt_requires }}
+    - requirements: /opt/salt/salt/requirements/{{ salt_requires }}
     - bin_env: /opt/salt
 {% endfor %}
 
