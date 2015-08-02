@@ -1,31 +1,118 @@
-#!/bin/bash
+#!/bin/bash -
 #
-# Install salt, here. Assumes recent Ubuntu.
+# Install Salt for development in /usr/local/salt
+# Tested on Ubuntu 15.04
 #
-# TODO: 
-# COMMAND-LINE OPTIONS:
-# -d: 'dev' install. do a 'normal' install, otherwise?
-# -M: install master
-# -s: install Supervisor jobs
-# -S: install Supervisor AND Supervisor jobs?
+# Usage:
+# $ install_salt_dev.sh [salt_branch]
+#   or...
+# $ curl -L http://hpk.io/install_salt_dev.sh | bash -s -- [options ...]
 
 
-# Ensure running as root
-if [ "$(id -u)" != "0" ]; then
-    echo "$0: Must be run as root."
+# This script must be run as root...
+if [ "$(id -u)" -ne "0" ]; then
+    echo "This script must be run as root."
     exit 1
 fi
 
+
+# TODO
+# - Allow to specify salt repository URL
+# - specify and connect to master, etc
+if [ "$#" -ge 1 ]; then
+    salt_branch="$1"
+    shift
+fi
+
+
+# If the first argument isn't an executable on the user's path,
+# evaluate the rest of the arguments.
+function if_not_installed() {
+    if ! type -p "$1" &>/dev/null; then
+        echo -e "\n--- Command '$1' not found, running: ${@:2}"
+        eval "${@:2}"
+    fi
+}
+
+# Echo the arguments with a '--- ' prefix, then evaluate them
+function echo_and_eval() {
+    echo -e "\n--- $@"
+    eval "$@"
+}
+
+
+# Ensure easy_install, git
+if_not_installed easy_install apt-get install python-setuptools
+if_not_installed git apt-get install git
+
 # Ensure pip
-if ! type pip &>/dev/null; then
-    echo -e "\nInstalling pip..."
-    apt-get -y install python-pip
+if_not_installed pip easy_install pip
+
+# Ensure virtualenv
+if_not_installed virtualenv pip install virtualenv
+
+# Create Salt virtualenv
+if [ ! -d /usr/local/salt ]; then
+    echo_and_eval virtualenv /usr/local/salt
+fi
+pushd /usr/local/salt >/dev/null        # pushd into 'salt' virtualenv (1)
+
+# Activate salt virtualenv
+if [ -n "$VIRTUAL_ENV" ]; then
+    old_virtual_env=$VIRTUAL_ENV
+fi
+source bin/activate
+
+# Git clone Salt
+if [ ! -d /usr/local/salt/salt ]; then
+    echo_and_eval git clone https://github.com/saltstack/salt.git /usr/local/salt/salt
 fi
 
-# Ensure Supervisor
-if ! type supervisord &>/dev/null; then
-    echo -e "\nInstalling Supervisor..."
-    pip install supervisor
+pushd salt >/dev/null                   # pushd into Salt repository (2)
+echo_and_eval git fetch --tags origin
+
+# Switch to a Salt branch, if one was specified
+if [ -n "$salt_branch" ] && ! $(git branch | grep "* $salt_branch$"); then
+    echo_and_eval git checkout $salt_branch
 fi
 
-# 
+# Install Salt requirements in virtualenv
+if [ -f dev_requirements_python27.txt ]; then
+    # Older (at least 2015.2)
+    echo_and_eval pip install -r dev_requirements_python27.txt
+elif [ -d requirements ]; then
+    # Newer (some time before 2015.8)
+    pushd requirements >/dev/null       # pushd into Salt requirements directory (3)
+    if [ -f dev_python27.txt ]; then
+        echo_and_eval pip install -r dev_python27.txt
+    fi
+    if [ -f zeromq.txt ]; then
+        echo_and_eval pip install -r zeromq.txt
+    fi
+    popd >/dev/null                     # popd into Salt repository (2)
+fi
+
+# Install Salt (as editable)
+pip install -e .
+
+# Symlink salt binaries into /usr/local/bin
+popd >/dev/null                         # popd into 'salt' virtualenv (1)
+pushd /usr/local/bin >/dev/null         # pushd into local bin directory (2)
+salt_bins=$(ls /usr/local/salt/bin/salt*)
+for bin_path in $salt_bins; do
+    echo_and_eval ln -fs $bin_path ./${bin_path##*/}
+done
+popd >/dev/null                         # popd into 'salt' virtualenv (1)
+
+# Clean-up
+popd >/dev/null                         # popd into original working directory (0)
+if [ -n "$old_virtual_env" ]; then
+    pushd $old_virtual_env >/dev/null
+    source bin/activate
+    popd >/dev/null
+else
+    deactivate
+fi
+
+echo "Script completed successfullly!"
+exit 0
