@@ -10,7 +10,7 @@ import setuptools
 setuptools.setup(
     version='0.0.1',
     name='saltlick',
-    description='Salt tools',
+    description='Tools for Salt systems',
     author='Adam Wright',
     author_email='adam@hipikat.org',
     license='BSD 2-Clause; see LICENSE.rst',

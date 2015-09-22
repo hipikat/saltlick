@@ -4,7 +4,7 @@ Saltlick is a delicious, convenient lump of Salt… utilities
 **This project is definitely 'pre-alpha'**
 
 Saltlick is working towards becoming a convenient package for working
-with servers orchestrated by Salt.
+with clusters orchestrated by Salt.
 
 Some things it does, and some things it's learning to do:
 
