@@ -75,25 +75,34 @@ done
 shift $((OPTIND-1))
 
 
+# Echo debug information if -D was passed
+function debug_echo() {
+    if [ -n "$_ECHO_DEBUG" ]; then
+        echo -e "\n--- $@"
+    fi
+}
+
 # If the first argument isn't an executable on the user's path,
 # evaluate the rest of the arguments.
 function if_not_installed() {
     if ! type -p "$1" &>/dev/null; then
-        echo -e "\n--- Command '$1' not found, running: ${@:2}"
+        #echo -e "\n--- Command '$1' not found, running: ${@:2}"
+        debug_echo "Command '$1' not found, running: ${@:2}"
         eval "${@:2}"
     fi
 }
 
 # Echo the arguments with a '--- ' prefix, then evaluate them
 function echo_and_eval() {
-    echo -e "\n--- $@"
+    #echo -e "\n--- $@"
+    debug_echo "$@"
     eval "$@"
 }
 
 
 # Ensure easy_install, git
-if_not_installed easy_install apt-get install python-setuptools
-if_not_installed git apt-get install git
+if_not_installed easy_install apt-get install -y python-setuptools
+if_not_installed git apt-get install -y git
 
 # Ensure pip
 if_not_installed pip easy_install pip
@@ -160,7 +169,7 @@ deactivate
 
 # Install Supervisor
 if ! type -p supervisorctl &>/dev/null; then
-    echo_and_eval apt-get install supervisor
+    echo_and_eval apt-get install -y supervisor
 fi
 
 # Clean-up
